@@ -1,0 +1,77 @@
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.cache/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.log
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ─── Environment variables ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
+
+# ─── Node / Next.js ───────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# (docker-compose.yml and Dockerfiles are intentionally tracked)
+
+# ─── Database / migrations ────────────────────────────────────────────────────
+*.db
+*.sqlite3
+*.sqlite
+
+# ─── OS / editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Alembic auto-generated ───────────────────────────────────────────────────
+# Keep alembic/versions/ tracked; ignore only compiled artefacts
+backend/alembic/__pycache__/
+
+# ─── Uploads / media ─────────────────────────────────────────────────────────
+uploads/
+media/
+
+# ─── Misc ─────────────────────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
