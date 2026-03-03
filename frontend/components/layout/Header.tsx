@@ -9,11 +9,11 @@ import {
   X,
   Search,
   MapPin,
-  ChevronDown,
   Briefcase,
   ShoppingBag,
   LayoutGrid,
   Wrench,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -114,6 +114,13 @@ export default function Header() {
                 <Search className="w-5 h-5" />
               </button>
             )}
+            <Link
+              href="/upload-inventory"
+              className="px-4 py-2 text-sm font-medium text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors"
+            >
+              <Upload className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              Upload Inventory
+            </Link>
             <Link
               href="/signup?role=business"
               className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"

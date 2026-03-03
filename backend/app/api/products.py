@@ -1,15 +1,29 @@
 """Products API."""
 
-from fastapi import APIRouter, Depends, Query
+import re
+
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
 from app.models import Product
-from app.schemas.product import ProductRead, ProductList, ProductCreate
+from app.models.category import Category
+from app.schemas.product import (
+    ProductRead, ProductList, ProductCreate,
+    ProductBulkCreate, ProductBulkResult,
+)
 from app.cache import cache_get, cache_set, cache_key
 
 router = APIRouter()
+
+
+def _slugify(text: str) -> str:
+    """Convert a name to a URL-safe slug."""
+    text = text.lower().strip()
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[\s_-]+", "-", text)
+    return text.strip("-")
 
 
 @router.get("", response_model=list[ProductList])
@@ -50,6 +64,69 @@ async def create_product(
     await db.flush()
     await db.refresh(prod)
     return ProductRead.model_validate(prod)
+
+
+@router.post("/bulk", response_model=ProductBulkResult)
+async def bulk_create_products(
+    payload: ProductBulkCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Bulk-create products from an Excel upload.
+
+    - Resolves category names to IDs automatically.
+    - Skips rows where name is empty.
+    - Returns a summary of created, skipped, and errored rows.
+    """
+    # Pre-fetch all categories into a name → id map (case-insensitive)
+    cat_result = await db.execute(select(Category))
+    category_map: dict[str, int] = {
+        c.name.lower(): c.id for c in cat_result.scalars().all()
+    }
+
+    created: list[ProductRead] = []
+    skipped = 0
+    errors: list[str] = []
+
+    for idx, item in enumerate(payload.products, start=1):
+        if not item.name or not item.name.strip():
+            skipped += 1
+            continue
+
+        try:
+            category_id: int | None = None
+            if item.category_name:
+                category_id = category_map.get(item.category_name.lower())
+                if category_id is None:
+                    errors.append(
+                        f"Row {idx} '{item.name}': category '{item.category_name}' not found — saved without category."
+                    )
+
+            slug = _slugify(item.name)
+
+            product = Product(
+                business_id=payload.business_id,
+                category_id=category_id,
+                name=item.name.strip(),
+                slug=slug,
+                description=item.description,
+                price=item.price,
+                currency=item.currency or "PHP",
+                image_url=item.image_url,
+                is_available=item.is_available,
+            )
+            db.add(product)
+            await db.flush()
+            await db.refresh(product)
+            created.append(ProductRead.model_validate(product))
+        except Exception as exc:
+            errors.append(f"Row {idx} '{item.name}': {str(exc)}")
+
+    return ProductBulkResult(
+        created=len(created),
+        skipped=skipped,
+        errors=errors,
+        items=created,
+    )
 
 
 @router.get("/{product_id}", response_model=ProductRead)

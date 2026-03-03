@@ -34,3 +34,26 @@ class ProductList(BaseSchema):
     price: float | None
     image_url: str | None
     business_id: int
+
+
+class ProductBulkItem(BaseSchema):
+    """Single row from an Excel/CSV bulk upload."""
+    name: str
+    description: str | None = None
+    price: float | None = None
+    currency: str = "PHP"
+    category_name: str | None = None
+    is_available: bool = True
+    image_url: str | None = None
+
+
+class ProductBulkCreate(BaseSchema):
+    business_id: int
+    products: list[ProductBulkItem]
+
+
+class ProductBulkResult(BaseSchema):
+    created: int
+    skipped: int
+    errors: list[str]
+    items: list[ProductRead]
